@@ -1,0 +1,175 @@
+#!/usr/local/bin/perl
+#
+#
+# historylogger
+#
+# Program for maintaining a log of the execution of commands
+#
+# Copyright (c) 2001 by Ardan Patwardhan. All rights reserved.
+#
+# DISCLAIMER
+# This software is provided on an 'as is' basis and any express or implied
+# warranties, including, but not limited to, the implied warranties of
+# merchantability and fitness for a particular purpose are disclaimed. 
+# In no event shall the copyright owner be liable for any direct, 
+# indirect, incidental, special, exemplary, or consequential damages 
+# (including, but not limited to, procurement of substitute goods or 
+# services; loss of use, data, or profits; or business interruption) 
+# however caused and on any theory of liability, whether in contract, 
+# strict liability, or tort (including negligence or otherwise) arising 
+# in any way out of the use of this software, even if advised of the 
+# possibility of such damage. 
+#
+# $Header: /usr/users/ardan/cvsroot/perl/historylogger,v 1.1.1.1 2001/12/14 09:54:40 ardan Exp $
+#
+
+
+
+
+
+########################################################################
+#                                                                      #
+# CONFIGURATION                                                        #
+#                                                                      #
+########################################################################
+
+# Basic info
+$histLog  = "/usr/users/ardan/history.log";
+
+
+
+
+
+########################################################################
+#                                                                      #
+# MAIN BODY                                                            #
+#                                                                      #
+########################################################################
+
+# Execute command
+$line = join(' ',@ARGV);
+system($line)==0 or die "historylogger: $line failed: $?";
+
+# Log command
+use Cwd;   
+use Sys::Hostname;
+@timeList = niceTime(time);
+$dir = cwd;
+$hostname = hostname();
+open(HISTLOG, ">> $histLog") || die "can't open $histLog: $!";
+printf(HISTLOG "%d%02d%02d %02d:%02d:%02d //%s%s  %s\n",$timeList[5],$timeList[4],$timeList[3],$timeList[2],$timeList[1],$timeList[0],$hostname,$dir,$line);
+close(HISTLOG);
+
+
+
+
+
+########################################################################
+#                                                                      #
+# SUBROUTINES                                                          #
+#                                                                      #
+########################################################################
+
+# Get current time into nice format
+sub niceTime {
+   my ($time) = @_;
+   my @timeList = localtime($time);
+   $timeList[4] += 1;      # Month 1->12
+   $timeList[5] += 1900;   # Year
+   return @timeList;
+}
+
+
+
+
+
+########################################################################
+#                                                                      #
+# POD                                                                  #
+#                                                                      #
+########################################################################
+
+=head1 NAME
+
+historylogger
+
+=head1 SYNOPSIS
+
+Script for logging the execution of specified shell commands.
+
+=head1 DESCRIPTION
+
+This history logging facility distinguishes itself from that provided in many shell environments such as csh by the following:
+
+=over 4
+
+=item 1.
+
+Only specified commands are logged.
+
+=item 2.
+
+The hostname and directory in which the command was executed is logged.
+
+=back
+
+In order to enable the logging of a command, your shell start-up file, e.g. .cshrc, needs to be modified as shown in the following example:
+
+ # History logged commands
+ alias hl ~/perl/historylogger
+ alias chmod 'hl chmod'
+ alias cp    'hl cp'
+ alias mkdir 'hl mkdir'
+ alias mv    'hl mv'
+ alias rm    'hl rm'
+ alias rmdir 'hl rmdir'
+ alias touch 'hl touch'
+
+The log file is specified in the script by the variable: $histLog. The following is a sample of a log file:
+
+ 20011214 08:38:34 //mvhf11.bc.ic.ac.uk/usr/users/ardan/perl: rm baseLog.log
+ 20011214 09:26:48 //mvhf11.bc.ic.ac.uk/usr/users/ardan: mkdir cvsroot
+ 20011214 09:55:06 //mvhf11.bc.ic.ac.uk/usr/users/ardan: mv perl perl.orig
+ 20011214 11:18:20 //mvhf11.bc.ic.ac.uk/usr/users/ardan/perl: cp historylogger mirror
+
+Commands are added to the log file only if they are executed sucessfully. Otherwise an error message is issued at the prompt.
+
+=head1 AUTHOR
+
+Ardan Patwardhan, ardan@patwardhan.org
+
+=head1 BUGS
+
+
+=head1 SEE ALSO
+
+
+=head1 COPYRIGHT
+
+Copyright 2001-2002 by Ardan Patwardhan. All Rights Reserved.
+
+
+=head1 DISCLAIMER
+
+This software is provided on an 'as is' basis and any express or implied warranties, including, but not limited to, the implied warranties of merchantability and fitness for a particular purpose are disclaimed. In no event shall the copyright owner be liable for any direct, indirect, incidental, special, exemplary, or consequential damages (including, but not limited to, procurement of substitute goods or services; loss of use, data, or profits; or business interruption) however caused and on any theory of liability, whether in contract, strict liability, or tort (including negligence or otherwise) arising in any way out of the use of this software, even if advised of the possibility of such damage. 
+
+
+=head1 README
+
+Command logging facility which stores the directory in which the command was executed.
+
+=head1 PREREQUISITES
+
+ Cwd
+ Sys::Hostname
+
+=head1 OSNAMES
+
+ dec_osf
+ Any Unix or Linux OS
+
+=head1 SCRIPT CATEGORIES
+
+ CPAN/Administrative
+
+=cut
